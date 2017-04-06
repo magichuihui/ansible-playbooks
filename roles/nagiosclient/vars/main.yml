@@ -1,0 +1,4 @@
+---
+# roles/nagiosclient/vars/main.yml
+
+pre_nagios: ['openssl-devel', 'gcc', 'cpp', 'gcc-c++', 'make']

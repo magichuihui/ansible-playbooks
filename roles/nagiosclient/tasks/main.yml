@@ -1,0 +1,10 @@
+---
+# roles/nagiosclient/tasks/main.yml
+
+- name: test if nagios is installed
+  shell: test -d /usr/local/nagios && echo 1 || echo 0 
+  register: nagiosclient
+  ignore_errors: True
+
+- include: install.yml
+  when: nagiosclient.stdout|int == 0 

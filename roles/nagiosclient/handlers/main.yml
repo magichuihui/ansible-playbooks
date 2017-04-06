@@ -1,0 +1,5 @@
+---
+# roles/nagiosclient/handlers/main.yml
+
+- name: restart nrpe
+  service: name=nrpe state=restarted
