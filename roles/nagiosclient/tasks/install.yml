@@ -24,7 +24,7 @@
   shell: cd /usr/local/src/ && tar zxvf nrpe-3.0.1.tar.gz && cd nrpe-3.0.1 && ./configure && make all && make install-plugin && make install-daemon && make install-init && make install-config
 
 - name: copy scripts to /usr/local/nagios/libexec
-  copy: src={{ item }} dest=/usr/local/nagios/libexec
+  copy: src={{ item }} dest=/usr/local/nagios/libexec owner=nagios group=nagios mode=0755
   with_items:
     - check-memory-percent.sh
     - check-cpu.sh
@@ -92,7 +92,7 @@
   service: name=nrpe state=restarted enabled=yes
 
 - name: install snmpd
-  yum: name=net-snmp* enabled=yes
+  yum: name=net-snmp* state=present
 
 - name: modify snmpd.conf
   shell: sed -i 's/^\(com2sec notConfigUser.*\)default\(.*\)/\1127.0.0.1\2/g' /etc/snmp/snmpd.conf && sed -i 's/^\(access.*\)systemview\(.*\)/\1mib2\2/g' /etc/snmp/snmpd.conf && sed -i 's/^#\(view mib2.*\)/\1/g' /etc/snmp/snmpd.conf

@@ -1,7 +1,7 @@
 ---
 
 - name: initialize new virtual machines
-  hosts: dbservers 
+  hosts: new 
   remote_user: root
 
   roles:
@@ -11,6 +11,6 @@
   hosts: nagios
   remote_user: root
 
-  task:
+  tasks:
     - name: restart nagios
       service: name=nagios state=restarted
