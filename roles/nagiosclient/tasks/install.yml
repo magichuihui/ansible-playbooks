@@ -92,7 +92,11 @@
   service: name=nrpe state=restarted enabled=yes
 
 - name: install snmpd
-  yum: name=net-snmp* state=present
+  yum: name={{ item }} state=present
+  with_items:
+    - net-snmp
+    - net-snmp-libs
+    - net-snmp-utils
 
 - name: modify snmpd.conf
   shell: sed -i 's/^\(com2sec notConfigUser.*\)default\(.*\)/\1127.0.0.1\2/g' /etc/snmp/snmpd.conf && sed -i 's/^\(access.*\)systemview\(.*\)/\1mib2\2/g' /etc/snmp/snmpd.conf && sed -i 's/^#\(view mib2.*\)/\1/g' /etc/snmp/snmpd.conf
