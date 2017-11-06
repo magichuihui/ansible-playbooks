@@ -1,0 +1,28 @@
+---
+# roles/rsyslogclient/tasks/main.yml
+
+- name: update rsyslog
+  yum:
+    name: rsyslog
+    state: latest
+
+- name: install rsyslog-relp librelp
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - librelp
+    - rsyslog-relp
+
+- name: not harvest LOCAL2 in /var/log/messages
+  shell: sed -i 's/\(\(\w*\.\w*\;\)*\w*\.\w*\)\([[:blank:]]*\)\/var\/log\/messages/\1;local2.none\t\/var\/log\/messages/g' /etc/rsyslog.conf
+
+- name: relp client configure
+  template:
+    src: relpclient.conf
+    dest: /etc/rsyslog.d/relpclient.conf
+
+- name: restart rsyslog
+  service:
+    name: rsyslog
+    state: restarted

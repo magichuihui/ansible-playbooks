@@ -1,0 +1,31 @@
+# roles/omd_client/tasks/main.yml
+
+- name: Copy check_mk's rpm package
+  copy:
+    src: check-mk-agent-1.2.8p20-1.noarch.rpm
+    dest: /tmp
+
+- name: Install xinetd
+  yum:
+    name: xinetd
+    state: present
+
+- name: Install check_mk
+  yum:
+    name: /tmp/check-mk-agent-1.2.8p20-1.noarch.rpm
+    state: present
+
+- name: Copy check_mk's xinetd configure
+  template:
+    src: check_mk
+    dest: /etc/xinetd.d/check_mk
+
+- name: Delete check_mk's rpm package
+  file:
+    path: /tmp/check-mk-agent-1.2.8p20-1.noarch.rpm
+    state: absent
+
+- name: Restart xinetd
+  service:
+    name: xinetd
+    state: restarted

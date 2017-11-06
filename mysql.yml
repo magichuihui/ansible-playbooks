@@ -1,0 +1,30 @@
+---
+# mysql.yml
+
+- name: install MySQL56 server
+  hosts: MySQL
+  remote_user: root
+
+  roles:
+    - mysql56
+
+- name: create Master-Master MySQL cluster'master
+  hosts: master
+  remote_user: root
+
+  roles:
+    - mysql56_master
+
+- name: create Master-Master MySQL cluster'secondary
+  hosts: secondary
+  remote_user: root
+
+  roles:
+    - mysql56_master
+
+- name: install keepalived for mysql HA
+  hosts: MySQL
+  remote_user: root
+  
+  roles:
+    - mysql_keepalived

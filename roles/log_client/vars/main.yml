@@ -1,0 +1,4 @@
+---
+# roles/log_client/vars/default.yml
+
+rsyslogd_server: 10.104.18.29

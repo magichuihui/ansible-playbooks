@@ -1,0 +1,13 @@
+---
+- name: Add user
+  user:
+    name: xftpuser
+    password: 06151d4602a0eaace8ba7428cc70f
+    comment: "For xftp"
+
+- name: Set authorized key
+  authorized_key:
+    user: xftpuser
+    state: present
+    key: "{{ lookup('file', '/home/kyra/.ssh/id_rsa.pub') }}"
+

@@ -1,0 +1,48 @@
+---
+# roles/mysql56/tasks/main.yml
+
+#- name: set hostname to "mysql_ip_address"
+#  hostname: mysql_{{ ansible_default_ipv4.address.split('.') | reverse | join('.') }}
+
+- name: copy files to hosts
+  copy: src=mysql57-community-release-el7-11.noarch.rpm dest=/usr/local/src
+
+- name: install MySQL repositories
+  yum: 
+    name: /usr/local/src/mysql57-community-release-el7-11.noarch.rpm
+    state: present
+
+- name: use mysql56-community instead of mysql57-community
+  shell: yum-config-manager --disable mysql57-community && yum-config-manager --enable mysql56-community
+
+- name: install mysql56
+  yum: 
+    name: mysql-community-server
+    state: present
+
+- name: add port 3306 to firewalld
+  firewalld:
+    port: 3306/tcp
+    permanent: true
+    state: enabled
+
+- name: create my.cnf
+  template:
+    src: my.cnf
+    dest: /etc/my.cnf
+
+- name: start mysql server
+  service:
+    name: mysqld
+    state: started  
+
+- name: copy config_mysql.sh
+  template: src=config_mysql.sh dest=/tmp
+
+- name: execute config_mysql.sh
+  shell: sh /tmp/config_mysql.sh
+
+- name: restart mysqld
+  service:
+    name: mysqld
+    state: restarted

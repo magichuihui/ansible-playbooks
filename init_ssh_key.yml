@@ -1,0 +1,9 @@
+---
+# init_ssh_key.yml
+
+- name: initiate ssh key
+  hosts: all
+  remote_user: root
+
+  roles:
+    - ssh-keys

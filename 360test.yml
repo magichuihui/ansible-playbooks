@@ -1,0 +1,29 @@
+# 360test.yml
+
+- name: 360
+  hosts: others
+  remote_user: root
+  vars:
+    ansible_ssh_private_key_file: /home/kyra/keygens/360
+
+#  roles:
+#    - cmd_history
+  tasks:
+    - shell: iptables-save
+    #- shell: sed -i '/^export PROMPT_COMMAND.*/d' /etc/bashrc && sed -i '/^export PROMPT_COMMAND.*/d' /etc/profile
+    #- shell: echo 'export PROMPT_COMMAND='"'"'{ cmd=$(history 1 | { read a b; echo "$b"; });msg=$(who am i |awk "{print \$2,\$NF}");logger -i -p local1.notice "$msg $USER $PWD $cmd"; }'"'" >> /etc/bashrc && echo 'export PROMPT_COMMAND='"'"'{ cmd=$(history 1 | { read a b; echo "$b"; });msg=$(who am i |awk "{print \$2,\$NF}");logger -i -p local1.notice "$msg $USER $PWD $cmd"; }'"'" >> /etc/profile
+#    - shell: service rsyslog status
+#    - shell: netstat -tan | awk '{if (NR > 2) {print}}' | awk '{ if ($6 =="LISTEN" && !match($5,":::*")) {split($4,arr,":");ports[arr[2]]++;} else if ($6 == "ESTABLISHED" || $6 == "TIME_WAIT") { split($4, lanips, ":"); if (!match($5, "^10.|^192.|^172.|^127.")) {connections[lanips[2]] = $5}} } END {for (i in connections) {if (i in ports) { print i, connections[i]}}}'
+
+- name: 360
+  hosts: nginx
+  remote_user: root
+  vars:
+    ansible_ssh_private_key_file: /home/kyra/keygens/360nginx
+
+#  roles:
+#    - cmd_history
+  tasks:
+    - shell: iptables-save
+#    - shell: sed -i '/^export PROMPT_COMMAND.*/d' /etc/bashrc && sed -i '/^export PROMPT_COMMAND.*/d' /etc/profile
+#    - shell: echo 'export PROMPT_COMMAND='"'"'{ cmd=$(history 1 | { read a b; echo "$b"; });msg=$(who am i |awk "{print \$2,\$NF}");logger -i -p local1.notice "$msg $USER $PWD $cmd"; }'"'" >> /etc/bashrc && echo 'export PROMPT_COMMAND='"'"'{ cmd=$(history 1 | { read a b; echo "$b"; });msg=$(who am i |awk "{print \$2,\$NF}");logger -i -p local1.notice "$msg $USER $PWD $cmd"; }'"'" >> /etc/profile

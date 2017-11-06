@@ -1,0 +1,51 @@
+---
+# roles/log_client/tasks/main.yml
+
+- name: install necessary package
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - rsyslog
+    - logrotate
+    - audit
+    - policycoreutils-python
+    - checkpolicy
+
+- name: Copy rsyslog's configure
+  template:
+    src: "{{ item }}"
+    dest: /etc/rsyslog.d/
+  with_items:
+    - audit.conf
+    - client.conf
+    - cmd_history.conf
+
+- name: Copy auditd's rule
+  template:
+    src: audit.rules
+    dest: /etc/audit/rules.d
+
+- name: Copy selinux module
+  copy:
+    src: "{{ item }}"
+    dest: /tmp
+  with_items:
+    - rsyslogd.te
+
+- name: Load selinux module
+  shell: cd /tmp && checkmodule -M -m -o rsyslogd.mod rsyslogd.te && semodule_package -o rsyslogd.pp -m rsyslogd.mod && semodule -i rsyslogd.pp
+
+- name: Load auditd rules
+  shell: augenrules --load
+
+- name: Restart auditd
+  service:
+    name: auditd
+    state: restarted
+    use: service
+
+- name: Restart rsyslogd
+  service:
+    name: rsyslog
+    state: restarted

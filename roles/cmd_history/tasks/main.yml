@@ -1,0 +1,36 @@
+---
+# roles/cmd_history/tasks/main.yml
+
+- name: install rsyslog & logrotate
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - rsyslog
+    - logrotate
+
+- name: create local1.notice for command log
+  shell: |
+    sed -i '/^local7/a \# Save history command to cmd.log\nlocal1.notice\t\t\t\t\t\t/var/log/cmd.log' /etc/rsyslog.conf
+#  shell: sed -i '/^# Save history command to cmd.log/d' /etc/rsyslog.conf && sed -i '/^local1.notice.*\/var\/log\/cmd.log/d' /etc/rsyslog.conf
+
+- name: config logrotate for command log
+  copy:
+    src: cmd_log
+    dest: /etc/logrotate.d/
+
+- name: restart rsyslog
+  service:
+    name: "{{ item }}"
+    state: restarted
+  with_items:
+    - rsyslog
+
+- name: change history format
+  shell: sed -i '/^HISTSIZE/a HISTTIMEFORMAT="%F %T `whoami` "' /etc/profile
+
+- name: save history command
+  shell: echo 'export PROMPT_COMMAND='"'"'{ cmd=$(history 1 | { read a b; echo "$b"; });msg=$(who am i |awk "{print \$2,\$5}");logger -i -p local1.notice "$msg $USER $PWD \# $cmd"; }'"'" >> /etc/bashrc
+
+#- name: clean /etc/profile
+#  shell: sed -i '/^HISTTIMEFORMAT.*/d' /etc/profile && sed -i '/^export PROMPT_COMMAND.*/d' /etc/profile && sed -i '/^export PROMPT_COMMAND.*/d' /etc/bashrc

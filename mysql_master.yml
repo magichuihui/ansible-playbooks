@@ -1,0 +1,24 @@
+---
+# mysql_master.yml
+
+- name: noop
+  hosts: MySQL
+  remote_user: root
+
+  tasks:
+    - name: noop1
+      shell: echo 1
+
+- name: create Master-Master MySQL cluster's secondary
+  hosts: secondary
+  remote_user: root
+
+  roles:
+    - mysql56_master
+
+- name: create Master-Master MySQL cluster's master
+  hosts: master
+  remote_user: root
+
+  roles:
+    - mysql56_master

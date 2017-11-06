@@ -1,0 +1,32 @@
+---
+# log_centralize.yml
+
+- name: Prepare log server
+  hosts: log_server
+  remote_user: root
+
+  vars:
+    ansible_ssh_private_key_file: /home/kyra/keygens/qingdao
+
+  roles:
+    - log_server
+
+- name: Prepare log client
+  hosts: nginx
+  remote_user: root
+  
+  vars:
+    ansible_ssh_private_key_file: /home/kyra/keygens/360nginx
+
+  roles:
+    - log_client
+
+- name: Prepare log client
+  hosts: others
+  remote_user: root
+
+  vars:
+    ansible_ssh_private_key_file: /home/kyra/keygens/360
+    
+  roles:
+    - log_client

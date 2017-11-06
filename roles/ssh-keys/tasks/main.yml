@@ -1,0 +1,9 @@
+- name: Add user xftpuser
+  user:
+    name: xftpuser
+
+- name: Set authorized keys
+  authorized_key:
+    user: xftpuser
+    state: present
+    key: "{{ lookup('file', 'xftpkey.pub') }}"

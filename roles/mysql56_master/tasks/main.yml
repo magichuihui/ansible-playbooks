@@ -1,0 +1,8 @@
+- name: copy create_master_slave.sh to host
+  template:
+    src: create_master_slave.sh
+    dest: /tmp/create_master_slave.sh
+
+- name: execute create_master_slave.sh to change master
+  shell: sh /tmp/create_master_slave.sh 
+

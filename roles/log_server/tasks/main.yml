@@ -1,0 +1,31 @@
+---
+# roles/log_server/tasks/main.yml
+
+- name: Install necessary package
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - rsyslog
+    - logrotate
+
+- name: Copy rsyslogd's configure files
+  template:
+    src: "{{ item }}"
+    dest: /etc/rsyslog.d/
+  with_items:
+    - 00-server.conf
+    - 01-json-template.conf
+    - 60-output.conf
+
+- name: Copy logrotate's configure files
+  template:
+    src: log_centralize
+    dest: /etc/logrotate.d/
+
+- name: Restart rsyslogd & logrotate
+  service:
+    name: "{{ item }}"
+    state: restarted
+  with_items:
+    - rsyslog

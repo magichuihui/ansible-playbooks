@@ -1,0 +1,9 @@
+---
+# rsyslog_centralize.yml
+
+- name: rsyslog relp client
+  hosts: web:!10.104.55.197
+  remote_user: root
+ 
+  roles:
+    - rsyslogclient 

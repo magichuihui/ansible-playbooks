@@ -1,0 +1,4 @@
+---
+# roles/log_server/vars/main.yml
+
+log_file: /mydata/tencent_logs/output.log
