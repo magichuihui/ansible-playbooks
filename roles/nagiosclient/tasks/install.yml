@@ -1,0 +1,105 @@
+---
+# roles/nagiosclient/tasks/install.yml
+
+- name: print installing
+  command: echo "installing"
+
+- name: install dependencies
+  yum: name={{ item }} state=installed
+  with_items: "{{ pre_nagios }}" 
+
+- name: add user nagios
+  user: name=nagios
+
+- name: copy files to /usr/local/src
+  copy: src={{ item.src }} dest=/usr/local/src
+  with_items:
+    - { src: 'nagios-plugins-2.1.4.tar.gz' }
+    - { src: 'nrpe-3.0.1.tar.gz' }
+
+- name: install nagios plugins
+  shell: cd /usr/local/src && tar zxvf nagios-plugins-2.1.4.tar.gz && cd nagios-plugins-2.1.4 && ./configure --prefix=/usr/local/nagios --with-nagios-user=nagios --with-nagios-group=nagios && make all && make install
+
+- name: install nrpe
+  shell: cd /usr/local/src/ && tar zxvf nrpe-3.0.1.tar.gz && cd nrpe-3.0.1 && ./configure && make all && make install-plugin && make install-daemon && make install-init && make install-config
+
+- name: copy scripts to /usr/local/nagios/libexec
+  copy: src={{ item }} dest=/usr/local/nagios/libexec owner=nagios group=nagios mode=0755
+  with_items:
+    - check-memory-percent.sh
+    - check-cpu.sh
+    - check_traffic.sh
+
+- name: modify nrpe.cfg
+  template: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: 'nrpe.cfg', dest: '/usr/local/nagios/etc/nrpe.cfg' }
+  notify: restart nrpe
+
+- name: add host block in hosts.cfg
+  delegate_to: 172.16.1.150
+  blockinfile:
+    dest: /usr/local/nagios/etc/monitor/hosts.cfg
+    insertafter: "EOF"
+    marker: "\n# {{ ansible_hostname }} {mark}"
+    block: |
+      define host {
+        use             linux-server,host-pnp
+        host_name       {{ ansible_hostname }}
+        alias           {{ ansible_hostname }}
+        address         {{ inventory_hostname }}
+      }
+
+- name: add service block in services.cfg
+  delegate_to: 172.16.1.150
+  blockinfile:
+    dest: /usr/local/nagios/etc/monitor/services.cfg
+    insertafter: "EOF"
+    marker: "# host {{ ansible_hostname }} {mark}"
+    block: |
+      define service {
+        use                     local-service,srv-pnp
+        host_name               {{ ansible_hostname }}
+        service_description     check_load
+        check_command           check_nrpe!check_load
+      }
+      define service {
+        use                     local-service,srv-pnp
+        host_name               {{ ansible_hostname }}
+        service_description     Root Partition
+        check_command           check_nrpe!check_root_partition
+      }
+      define service {
+        use                     local-service,srv-pnp
+        host_name               {{ ansible_hostname }}
+        service_description     Check memory
+        check_command           check_nrpe!check_mem_percent
+      }
+      define service {
+        use                     local-service,srv-pnp
+        host_name               {{ ansible_hostname }}
+        service_description     Check cpu
+        check_command           check_nrpe!check_cpu_percent
+      }
+      define service {
+        use                     local-service,srv-pnp
+        host_name               {{ ansible_hostname }}
+        service_description     Check traffic
+        check_command           check_nrpe!check_traffic
+      }
+
+- name: restart nrpe
+  service: name=nrpe state=restarted enabled=yes
+
+- name: install snmpd
+  yum: name={{ item }} state=present
+  with_items:
+    - net-snmp
+    - net-snmp-libs
+    - net-snmp-utils
+
+- name: modify snmpd.conf
+  shell: sed -i 's/^\(com2sec notConfigUser.*\)default\(.*\)/\1127.0.0.1\2/g' /etc/snmp/snmpd.conf && sed -i 's/^\(access.*\)systemview\(.*\)/\1mib2\2/g' /etc/snmp/snmpd.conf && sed -i 's/^#\(view mib2.*\)/\1/g' /etc/snmp/snmpd.conf
+
+- name: restart snmpd
+  service: name=snmpd state=restarted

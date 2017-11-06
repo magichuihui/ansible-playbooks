@@ -1,0 +1,16 @@
+---
+
+- name: initialize new virtual machines
+  hosts: new 
+  remote_user: root
+
+  roles:
+    - nagiosclient
+
+- name: restart nagios server
+  hosts: nagios
+  remote_user: root
+
+  tasks:
+    - name: restart nagios
+      service: name=nagios state=restarted

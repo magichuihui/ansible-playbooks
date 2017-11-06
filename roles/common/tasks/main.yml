@@ -1,0 +1,26 @@
+---
+
+- name: modify hostname
+  command: hostnamectl set-hostname {{ hostname }}
+
+- name: make sure parted is installed
+  yum: name=parted state=present
+
+- name: make lable for /dev/sdb
+  command: parted -s /dev/sdb mklabel msdos
+
+- name: create partition /dev/sdb1
+  command: parted -s /dev/sdb mkpart primary xfs 0% 100%
+
+- name: format /dev/sdb1
+  shell: mkfs -t xfs /dev/sdb1 || /bin/true
+
+- name: create new directory /data
+  file: dest=/data mode=0755 state=directory
+
+- name: mount /dev/sdb1
+  mount: 
+    path: /data
+    src: /dev/sdb1
+    fstype: xfs
+    state: mounted
