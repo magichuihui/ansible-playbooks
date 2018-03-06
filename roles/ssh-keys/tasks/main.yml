@@ -1,9 +1,5 @@
-- name: Add user xftpuser
-  user:
-    name: xftpuser
-
 - name: Set authorized keys
   authorized_key:
-    user: xftpuser
+    user: root
     state: present
-    key: "{{ lookup('file', 'xftpkey.pub') }}"
+    key: "{{ lookup('file', '/home/kyra/.ssh/id_rsa.pub') }}"

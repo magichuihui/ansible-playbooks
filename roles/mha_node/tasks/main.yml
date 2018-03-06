@@ -1,0 +1,22 @@
+---
+# roles/mha_node/tasks/main.yml
+
+- name: Install perl dependencies
+  yum:
+    name: perl-DBD-MySQL
+    state: present
+
+- name: Copy mha node's package
+  copy:
+    src: mha4mysql-node-0.56-0.el6.noarch.rpm
+    dest: /root
+
+- name: Install mha node
+  yum:
+    name: /root/mha4mysql-node-0.56-0.el6.noarch.rpm
+    state: present
+
+- name: Remove .rpm
+  file:
+    path: /root/mha4mysql-node-0.56-0.el6.noarch.rpm
+    state: absent

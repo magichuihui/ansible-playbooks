@@ -1,0 +1,48 @@
+---
+# roles/docker-client/tasks/main.yml
+
+- name: Add docker-ce repository
+  shell: yum-config-manager --add-repo http://download.docker.com/linux/centos/docker-ce.repo
+
+- name: Install docker-ce
+  yum:
+    name: docker-ce
+    state: present
+
+- name: Create directory /etc/docker
+  file:
+    path: /etc/docker
+    state: directory
+    mode: 0755
+
+- name: Copy docker's configuration
+  template:
+    src: "{{ item }}"
+    dest: "/etc/docker/{{ item }}"
+  with_items:
+    - daemon.json
+    - ca.pem
+    - server-cert.pem
+    - server-key.pem
+
+- name: Create directory /root/.docker/
+  file:
+    path: /root/.docker/
+    state: directory
+    mode: 0755
+
+- name: Copy client's ssl
+  template:
+    src: "{{ item }}"
+    dest: "/root/.docker/{{ item }}"
+    mode: 0600
+  with_items:
+    - ca.pem
+    - key.pem
+    - cert.pem
+
+- name: Start docker service
+  service:
+    name: docker
+    enabled: true
+    state: started

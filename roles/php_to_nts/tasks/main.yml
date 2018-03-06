@@ -1,0 +1,28 @@
+---
+# roles/php_to_nts/tasks/main.yml
+
+- name: Install libiconv
+  shell: cd /usr/local/src/ && wget http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.13.1.tar.gz && tar zxvf libiconv-1.13.1.tar.gz && cd libiconv-1.13.1/ && ./configure --prefix=/usr/local/libiconv && make && make install && cd .. && rm -rf libiconv-1.13.1/
+
+- name: ldconfig
+  shell: echo -e "/usr/local/lib64\n/usr/local/lib\n/usr/lib\n/usr/lib64\n/usr/local/libiconv/lib" >> /etc/ld.so.conf.d/base.conf && ldconfig
+
+- name: Install php
+  shell: cd /usr/local/src/ && wget http://museum.php.net/php5/php-5.5.38.tar.gz && tar zxvf php-5.5.38.tar.gz && cd php-5.5.38 && './configure'  '--prefix=/usr/local/php' '--with-config-file-path=/usr/local/php/etc' '--with-mysql' '--with-mysqli' '--with-pdo-mysql' '--with-iconv=/usr/local/libiconv' '--with-freetype-dir' '--with-jpeg-dir' '--with-png-dir' '--with-zlib' '--with-libxml-dir=/usr' '--enable-xml' '--disable-rpath' '--enable-bcmath' '--enable-shmop' '--enable-sysvsem' '--enable-inline-optimization' '--with-curl' '--with-curlwrappers' '--enable-mbregex' '--enable-fpm' '--enable-mbstring' '--with-mcrypt' '--with-gd' '--enable-gd-native-ttf' '--with-openssl' '--with-mhash' '--enable-pcntl' '--enable-sockets' '--with-ldap-sasl' '--with-xmlrpc' '--enable-zip' '--disable-maintainer-zts' '--enable-opcache=yes' && make && make install && make clean
+
+- name: Use php.ini
+  template:
+    src: php.ini
+    dest: /usr/local/php/etc/php.ini
+
+- name: Install php modules
+  shell: /usr/local/php/bin/pecl install igbinary imagick redis
+
+- name: Install libdatrie
+  shell: cd /usr/local/src/ && wget ftp://linux.thai.net/pub/ThaiLinux/software/libthai/libdatrie-0.2.5.tar.gz && tar zxvf libdatrie-0.2.5.tar.gz && cd libdatrie-0.2.5/ && ./configure LDFLAGS=-L/usr/local/lib LIBS=-liconv && make && make install && cd .. && rm -rf libdatrie-0.2.5/
+
+- name: Install php module trie_filter
+  shell: cd /usr/local/src/ && wget https://github.com/wulijun/php-ext-trie-filter/archive/master.zip -O php-ext-trie-filter-master.zip && unzip php-ext-trie-filter-master.zip && cd php-ext-trie-filter-master/ && /usr/local/php/bin/phpize && ./configure --with-php-config=/usr/local/php/bin/php-config --with-trie-filter=/usr/local/libdatrie/ && make && make install && cd .. && rm -rf php-ext-trie-filter-master/
+
+- name: Install zendloader
+  shell: cd /usr/local/src/ && wget http://downloads.zend.com/guard/7.0.0/zend-loader-php5.5-linux-x86_64.tar.gz && tar zxvf zend-loader-php5.5-linux-x86_64.tar.gz && cp zend-loader-php5.5-linux-x86_64/ZendGuardLoader.so /usr/local/php/lib/php/extensions/no-debug-non-zts-20121212/

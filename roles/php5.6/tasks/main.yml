@@ -1,0 +1,71 @@
+---
+# roles/php_to_nts/tasks/main.yml
+
+- name: Install libiconv
+  shell: cd /usr/local/src/ && wget http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.13.1.tar.gz -O libiconv-1.13.1.tar.gz && tar zxvf libiconv-1.13.1.tar.gz && cd libiconv-1.13.1/ && ./configure --prefix=/usr/local/libiconv && make && make install && cd .. && rm -rf libiconv-1.13.1/
+
+- name: ldconfig
+  shell: echo -e "/usr/local/lib64\n/usr/local/lib\n/usr/lib\n/usr/lib64\n/usr/local/libiconv/lib" >> /etc/ld.so.conf.d/base.conf && ldconfig
+
+- name: Install php
+  shell: cd /usr/local/src/ && wget http://cn.php.net/distributions/php-5.6.33.tar.gz && tar zxvf php-5.6.33.tar.gz && cd php-5.6.33 && './configure'  '--prefix=/usr/local/php5.6' '--with-config-file-path=/usr/local/php5.6/etc' '--with-mysql' '--with-mysqli' '--with-pdo-mysql' '--with-iconv=/usr/local/libiconv' '--with-freetype-dir' '--with-jpeg-dir' '--with-png-dir' '--with-zlib' '--with-libxml-dir=/usr' '--enable-xml' '--disable-rpath' '--enable-bcmath' '--enable-shmop' '--enable-sysvsem' '--enable-inline-optimization' '--with-curl' '--enable-mbregex' '--enable-fpm' '--enable-mbstring' '--with-mcrypt' '--with-gd' '--enable-gd-native-ttf' '--with-openssl' '--with-mhash' '--enable-pcntl' '--enable-sockets' '--with-ldap-sasl' '--with-xmlrpc' '--enable-zip' '--disable-maintainer-zts' '--enable-opcache=yes' && make && make install && make clean
+
+- name: Use php.ini
+  template:
+    src: "{{ item }}"
+    dest: "/usr/local/php5.6/etc/{{ item }}"
+  with_items:
+    - php.ini
+    - php-fpm.conf
+
+- name: Create directory fpm.d
+  file:
+    path: /usr/local/php5.6/etc/fpm.d
+    state: directory
+
+- name: Configuration of fpm's pool
+  template:
+    src: www.conf
+    dest: /usr/local/php5.6/etc/fpm.d/
+
+- name: Install libmemcached
+  shell: cd /usr/local/src/ && wget https://launchpad.net/libmemcached/1.0/1.0.18/+download/libmemcached-1.0.18.tar.gz && tar zxvf libmemcached-1.0.18.tar.gz && cd libmemcached-1.0.18/ && ./configure && make && make install && cd .. && rm -rf libmemcached-1.0.18/
+
+- name: Install php modules
+  shell: /usr/local/php5.6/bin/pecl install igbinary imagick memcached && /usr/local/php5.6/bin/pecl install redis <<<"yes"
+
+- name: Install libdatrie
+  shell: cd /usr/local/src/ && wget ftp://linux.thai.net/pub/ThaiLinux/software/libthai/libdatrie-0.2.5.tar.gz && tar zxvf libdatrie-0.2.5.tar.gz && cd libdatrie-0.2.5/ && ./configure LDFLAGS=-L/usr/local/lib LIBS=-liconv && make && make install && cd .. && rm -rf libdatrie-0.2.5/
+
+- name: Install php module trie_filter
+  shell: cd /usr/local/src/ && wget https://github.com/wulijun/php-ext-trie-filter/archive/master.zip -O php-ext-trie-filter-master.zip && unzip php-ext-trie-filter-master.zip && cd php-ext-trie-filter-master/ && /usr/local/php5.6/bin/phpize && ./configure --with-php-config=/usr/local/php5.6/bin/php-config --with-trie-filter=/usr/local/libdatrie/ && make && make install && cd .. && rm -rf php-ext-trie-filter-master/
+
+- name: Install zendloader
+  shell: cd /usr/local/src/ && wget http://downloads.zend.com/guard/7.0.0/zend-loader-php5.6-linux-x86_64.tar.gz && tar zxvf zend-loader-php5.6-linux-x86_64.tar.gz && cp zend-loader-php5.6-linux-x86_64/ZendGuardLoader.so /usr/local/php5.6/lib/php/extensions/no-debug-non-zts-20131226/
+
+- name: Install phalcon-3.3.1
+  shell: cd /usr/local/src/ && wget -O cphalcon-3.3.1.zip https://github.com/phalcon/cphalcon/archive/v3.3.1.zip && unzip cphalcon-3.3.1.zip && cd cphalcon-3.3.1/build && ./install --phpize /usr/local/php5.6/bin/phpize --php-config /usr/local/php5.6/bin/php-config
+
+- name: Copy shopnc.so
+  copy:
+    src: shopnc.so
+    dest: /usr/local/php5.6/lib/php/extensions/no-debug-non-zts-20131226/
+
+# restart php5.6 fpm
+- name: fpm's initd configuration
+  template:
+    src: php5.6-fpm
+    dest: /etc/init.d/php5.6-fpm
+    mode: 0755
+
+#- name: Stop php5.5's fpm
+#  service:
+#    name: php-fpm
+#    state: stopped
+
+#- name: Start php5.6 fpm
+#  service:
+#    name: php5.6-fpm
+#    state: started
+#    enabled: yes
+

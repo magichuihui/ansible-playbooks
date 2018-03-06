@@ -1,0 +1,52 @@
+---
+# roles/mha_manager/tasks/main.yml
+
+- name: Install perl dependencies
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - perl-Config-Tiny
+    - perl-Log-Dispatch
+    - perl-Parallel-ForkManager
+
+- name: Copy .rpm
+  copy:
+    src: mha4mysql-manager-0.56-0.el6.noarch.rpm
+    dest: /root
+
+- name: Install MHA Manager
+  yum:
+    name: /root/mha4mysql-manager-0.56-0.el6.noarch.rpm
+    state: present
+
+- name: Remove .rpm
+  file:
+    path: /root/mha4mysql-manager-0.56-0.el6.noarch.rpm
+    state: absent
+
+- name: Create directory /etc/masterha/scripts
+  file:
+    path: /etc/masterha/scripts
+    state: directory
+    mode: 0755
+
+- name: Copy scripts to hosts
+  copy:
+    src: '{{ item }}'
+    dest: '/etc/masterha/scripts/{{ item }}'
+  with_items:
+    - master_ip_failover
+    - master_ip_online_change
+    - power_manager
+    - send_report
+
+- name: Add execute permission
+  file:
+    path: '/etc/masterha/scripts/{{ item }}'
+    mode: 0755
+  with_items:
+    - master_ip_failover
+    - master_ip_online_change
+    - power_manager
+    - send_report
