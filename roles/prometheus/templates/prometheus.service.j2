@@ -1,0 +1,33 @@
+{%- if prometheus_version is version_compare('2.0.0', '>=') %}
+{%- set pre = '-' %}
+{%- else %}
+{%- set pre = '' %}
+{%- endif %}
+# {{ ansible_managed }}
+[Unit]
+Description=Prometheus
+After=network.target
+
+[Service]
+Type=simple
+Environment="GOMAXPROCS={{ ansible_processor_vcpus|default(ansible_processor_count) }}"
+User=prometheus
+Group=prometheus
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/local/bin/prometheus \
+  {{ pre }}-config.file={{ prometheus_config_dir }}/prometheus.yml \
+  {{ pre }}-storage.{{ 'tsdb' if prometheus_version is version_compare('2.0.0', '>=') else 'local' }}.path={{ prometheus_db_dir }} \
+  {{ pre }}-storage.{{ 'tsdb' if prometheus_version is version_compare('2.0.0', '>=') else 'local' }}.retention={{ prometheus_storage_retention }} \
+  {{ pre }}-web.listen-address={{ prometheus_web_listen_address }} \
+  {{ pre }}-web.external-url={{ prometheus_web_external_url }}{% for flag, flag_value in prometheus_config_flags_extra.items() %}\
+  {{ pre }}-{{ flag }}={{ flag_value }} {% endfor %}
+
+{% if http_proxy is defined %}
+Environment="HTTP_PROXY={{ http_proxy }}"{% if https_proxy is defined %} "HTTPS_PROXY={{ https_proxy }}{% endif %}"
+{% endif %}
+
+SyslogIdentifier=prometheus
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
