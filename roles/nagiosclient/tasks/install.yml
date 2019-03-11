@@ -102,4 +102,4 @@
   shell: sed -i 's/^\(com2sec notConfigUser.*\)default\(.*\)/\1127.0.0.1\2/g' /etc/snmp/snmpd.conf && sed -i 's/^\(access.*\)systemview\(.*\)/\1mib2\2/g' /etc/snmp/snmpd.conf && sed -i 's/^#\(view mib2.*\)/\1/g' /etc/snmp/snmpd.conf
 
 - name: restart snmpd
-  service: name=snmpd state=restarted
+  service: name=snmpd state=restarted enabled=yes

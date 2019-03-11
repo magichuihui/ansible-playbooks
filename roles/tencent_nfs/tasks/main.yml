@@ -1,0 +1,20 @@
+---
+# roles/tencent_nfs/tasks/main.yml
+
+- name: Install nfs
+  yum:
+    name: nfs-utils
+    state: present
+
+- name: Make nfs mount point
+  file:
+    path: /mnt/static
+    state: directory
+
+- name: Mount nfs from 10.104.71.255
+  mount:
+    src: 10.104.71.255:/mnt/static_nfs_home
+    path: /mnt/static
+    fstype: nfs
+    opts: vers=3
+    state: mounted

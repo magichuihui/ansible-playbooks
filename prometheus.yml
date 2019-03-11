@@ -1,0 +1,13 @@
+- hosts: none
+  user: root
+  roles:
+    - node-exporter
+  tags: node-exporter
+
+- hosts: nagios
+  user: root
+  roles:
+    - prometheus
+    - alertmanager
+  tags:
+    - prometheus

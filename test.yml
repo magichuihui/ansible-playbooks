@@ -2,13 +2,11 @@
 # mysql.yml
 
 - name: guest who is coming
-  hosts: all
+  hosts: new
   remote_user: root
-  vars:
-    - ansible_ssh_private_key_file: /home/kyra/keygens/qingdao
+  #vars:
+  #  - ansible_ssh_private_key_file: /home/kyra/keygens/qingdao
   
 
-  tasks:
-    - name: find cron at bigbrand
-      shell: crontab -l
-      ignore_errors: true
+  roles:
+    - k8s

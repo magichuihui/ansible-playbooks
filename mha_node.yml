@@ -1,0 +1,9 @@
+---
+
+- name: install mha node
+  hosts: manager
+  remote_user: root
+
+  roles:
+    - mha_node
+    - mha_manager

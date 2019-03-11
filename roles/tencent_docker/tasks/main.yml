@@ -1,0 +1,54 @@
+---
+# roles/tencent_docker/tasks/main.yml
+
+- name: Copy docker.rpm
+  copy:
+    src: docker-ce-18.06.1.ce-3.el7.x86_64.rpm
+    dest: /usr/local/src
+
+- name: mkdir /etc/docker
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /etc/docker
+    - /usr/lib/systemd/system/docker.service.d/
+
+- name: Install docker-ce from local rpm file
+  yum:
+    name: /usr/local/src/docker-ce-18.06.1.ce-3.el7.x86_64.rpm
+    state: present
+
+- name: Remove docker's rpm
+  file:
+    path: /usr/local/src/docker-ce-18.06.1.ce-3.el7.x86_64.rpm
+    state: absent
+
+- name: Copy docker configure
+  template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+
+- name: Copy docker service's proxy conf
+  template:
+    src: all_proxy.conf.j2
+    dest: /usr/lib/systemd/system/docker.service.d/all_proxy.conf
+
+- name: Copy docker's private key pair
+  copy:
+    src: "{{ item }}"
+    dest: /etc/docker/
+  with_items:
+    - ca.pem
+    - server-cert.pem
+    - server-key.pem
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Start and enable docker service
+  service:
+    name: docker
+    state: restarted
+    enabled: yes

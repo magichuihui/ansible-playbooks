@@ -1,0 +1,15 @@
+{
+    "hosts": ["tcp://0.0.0.0:2376", "unix:///var/run/docker.sock"],
+    "storage-driver": "overlay2",
+    "storage-opts": [
+        "overlay2.override_kernel_check=true"
+    ],
+    "registry-mirrors": ["https://16agrsie.mirror.aliyuncs.com"],
+    "tlsverify": true,
+    "tlscacert": "/etc/docker/ca.pem",
+    "tlscert": "/etc/docker/server-cert.pem",
+    "tlskey": "/etc/docker/server-key.pem",
+    "experimental": true,
+    "metrics-addr": "0.0.0.0:9323",
+    "labels": ["com.hostname={{ ansible_nodename }}"]
+}

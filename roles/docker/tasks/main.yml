@@ -1,35 +1,60 @@
-# playbook for docker
+---
+# roles/docker/tasks/main.yml
 
-- name: install required packages
-  yum:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - yum-utils
-    - device-mapper-persistent-data
-    - lvm2
-- name: set up the stable docker repository
-  shell: yum-config-manager \
-    --add-repo \
-    https://download.docker.com/linux/centos/docker-ce.repo
+- name: Add docker-ce repository
+  shell: yum-config-manager --add-repo http://download.docker.com/linux/centos/docker-ce.repo
 
-- name: install docker-ce
+- name: Install docker-ce
   yum:
     name: docker-ce
     state: present
 
-- name: make directory /etc/docker
+- name: Create directory /etc/docker
   file:
     path: /etc/docker
-    owner: root
-    group: root
-    mode: 0755
     state: directory
+    mode: 0755
 
-- name: create /etc/docker/daemon.json
-  shell: "echo -e '{\n  \"storage-driver\": \"devicemapper\"\n}' > /etc/docker/deamon.json"
+- name: Copy docker's configuration
+  template:
+    src: "{{ item }}"
+    dest: "/etc/docker/{{ item }}"
+  with_items:
+    - daemon.json
+    - ca.pem
+    - server-cert.pem
+    - server-key.pem
 
-- name: start dockerd
-  service:
+- name: Create directory /usr/lib/systemd/system/docker.service.d
+  file:
+    path: /usr/lib/systemd/system/docker.service.d
+    state: directory
+    mode: 0755
+
+- name: Copy docker's systemd configuration
+  template:
+    src: "docker.conf"
+    dest: "/usr/lib/systemd/system/docker.service.d/docker.conf"
+
+- name: Create directory /root/.docker/
+  file:
+    path: /root/.docker/
+    state: directory
+    mode: 0755
+
+- name: Copy client's ssl
+  template:
+    src: "{{ item }}"
+    dest: "/root/.docker/{{ item }}"
+    mode: 0600
+  with_items:
+    - ca.pem
+    - key.pem
+    - cert.pem
+
+- name: Start docker service
+  systemd:
     name: docker
+    enabled: true
     state: restarted
+    daemon_reload: yes

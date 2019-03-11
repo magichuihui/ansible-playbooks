@@ -1,0 +1,10 @@
+[master]
+172.17.30.30
+[slave]
+172.17.30.31
+172.17.30.32
+[manager]
+172.17.30.42
+[mysql:children]
+master
+slave

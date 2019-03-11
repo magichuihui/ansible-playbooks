@@ -1,7 +1,7 @@
 ---
 
 - name: initialize new virtual machines
-  hosts: new 
+  hosts: hadoop
   remote_user: root
 
   roles:
